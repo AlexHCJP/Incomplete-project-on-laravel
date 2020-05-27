@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 
 /**
- * Class Recipe
+ * Class recipe
  * @package App
  *
  * @property-read $id
@@ -23,4 +23,8 @@ class Recipe extends Model
     protected $fillable = [
         'name', 'text', 'title', 'user_id', 'likes'
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }

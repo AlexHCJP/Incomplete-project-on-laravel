@@ -3,56 +3,53 @@
 namespace App\Http\Controllers;
 
 use App\Recipe;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class RecipeController extends Controller
 {
     public $rules = [
-        'title' => 'required',
-        'name' => 'required',
+        'title' => 'required|min:5|max:255',
+        'text' => 'required',
     ];
     public function index()
     {
-        $recipes = Recipe::all();
-        return view('recipes', ['recipes'=>$recipes]);
+        $recipes = Recipe::on()->paginate(9);
+        return view('recipe.recipes', ['recipes'=>$recipes]);
     }
     public function create()
     {
-        $title = request()->get('title');
-        $text = request()->get('text');
-        if(is_null($title) || is_null($text))
-            return response()->redirectTo('/')->withErrors('Forma ne zapolnena');
-        $recipe = new Recipe();
-        $recipe->title = $title;
-        $recipe->text = $text;
-        $recipe->user_id = auth()->user()->id;
-        $recipe->save();
-        return response()->redirectTo('/');
+        return view('recipe.form');
     }
     public function store(Request $request)
     {
-//        $this->validate($request, $this->rules);
-//
-//        return redirect()->withErrors();
-//        хех, не понял
+        $data = $this->validate($request, $this->rules);
+        /**
+         * @var HasMany $recipes
+         */
+        $recipes = auth()->user()->recipes();
+        $new = $recipes->create($data);
+        return redirect()->route('recipe.show', ['recipe' => $new]);
     }
     public function show(Recipe $recipe)
     {
-        //
+        return view('recipe.show', [ 'recipe' => $recipe]);
     }
 
     public function edit(Recipe $recipe)
     {
-        //
+        return view('recipe.form', ['recipe' => $recipe]);
     }
     public function update(Request $request, Recipe $recipe)
     {
-        //
+        $data = $this->validate($request, $this->rules);
+        $recipe->update($data);
+        return redirect()->route('recipe.show', ['recipe' => $recipe]);
     }
     public function destroy(Recipe $recipe)
     {
-        //
+        $recipe->delete();
+        return redirect()->route('recipe.index');
     }
     public function like(Recipe $recipe)
     {
